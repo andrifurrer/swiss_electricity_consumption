@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Water Animation</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="script.js"></script>
     <!-- Include GSAP Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.1/gsap.min.js"></script>
@@ -23,16 +24,32 @@
 
     <!-- Text Section -->
     <div class="text-section">
-        <h1>Welcome to the live overview of Swiss electricity consumption!</h1>
-        <p>Experience the stunning amount of water used to generate our consumed energy!</p>
+        <h1>Welcome to the live overview of the Swiss electricity production!</h1>
+        <!--<p>Experience the stunning amount of water used to generate our consumed energy!</p> -->
     </div>
 
+    <!-- Daily Production Visualised -->
+    <section class="data-section">
+        <h2>Daily Electricity Production by Source</h2>
 
+        <div class="filter-controls">
+            <label for="timeFilter">Select timeline:</label>
+            <select id="timeFilter">
+                <option value="recentDay">Most Recent Day</option>
+                <option value="currentMonth">Current Month</option>
+                <option value="lastMonth">Last Month</option>
+                <option value="year">Select Year</option>
+                <option value="all">Total Timeline</option>
+            </select>
 
-    <!-- Waterfall Animation Section -->
-    <div class="waterfall-container">
-        <div class="waterfall"></div>
-    </div>
+            <select id="yearSelect" style="display:none;">
+            <!-- years will be populated dynamically -->
+            </select>
+        </div>
+
+        <canvas id="energyChart"></canvas>
+    </section>
+
 
 </body>
 </html>
