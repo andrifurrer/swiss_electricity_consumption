@@ -25,6 +25,37 @@ async function loadCSV() {
         setupFilterListener();
     }
 
+// async function loadCSV() {
+//     try {
+//         const csvUrl = "https://www.bfe-ogd.ch/ogd104_stromproduktion_swissgrid.csv?v=" + new Date().getTime();
+
+//         const response = await fetch(csvUrl);
+//         const text = await response.text();
+
+//         const rows = text.trim().split("\n").slice(1);
+
+//         allData = rows.map(row => {
+//             const cols = row.split(",");
+
+//             return {
+//                 date: new Date(cols[0]),
+//                 source: cols[1],
+//                 value: parseFloat(cols[2].replace(",", "."))
+//             };
+//         //}).filter(d => !isNaN(d.date));
+//         });
+
+//         console.log("Loaded official data:", allData.length);
+
+//         populateYearSelect();
+//         updateChart("recentDay");
+//         setupFilterListener();
+
+//     } catch (error) {
+//         console.error("CSV load failed:", error);
+//     }
+// }
+
 // Populate years in dropdown
 function populateYearSelect() {
     const yearSet = new Set(allData.map(d => d.date.getFullYear()));
