@@ -5,11 +5,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let allData = []; // Keep full dataset in memory
 let chart = null;
+let pieChart = null;
 
 async function loadCSV() {
     const response = await fetch("data/ogd104_stromproduktion_swissgrid.csv");
     const text = await response.text();
     const rows = text.trim().split("\n").slice(1); // remove header
+
+    const currentYear = new Date().getFullYear();
 
     allData = rows.map(row => {
             const cols = row.split(",");
@@ -22,6 +25,7 @@ async function loadCSV() {
 
         populateYearSelect();
         updateChart("recentDay");
+        updatePieChart(currentYear);
         setupFilterListener();
     }
 
@@ -79,6 +83,7 @@ function setupFilterListener() {
 
     yearSelect.addEventListener("change", () => {
         updateChart("year");
+        updatePieChart(yearSelect.value);
     });
 }
 
@@ -87,6 +92,9 @@ function setupFilterListener() {
 function filterData(filterValue) {
     const now = new Date();
     let filtered = [];
+
+    document.getElementById("energyPieChart").style.display =
+    filterValue === "year" ? "block" : "none";
 
     if (filterValue === "recentDay") {
         // For testing, use yesterday instead of today:
@@ -231,4 +239,102 @@ function updateChart(filterValue) {
 function getColor(index) {
     const palette = ["#3498db","#f1c40f","#e74c3c","#1abc9c", "#2ecc71","#9b59b6",];
     return palette[index % palette.length];
+}
+
+const centerTextPlugin = {
+    id: 'centerText',
+    beforeDraw(chart) {
+        const { width, height, ctx } = chart;
+        ctx.restore();
+
+        const fontSize = (height / 240).toFixed(2);
+        ctx.font = `${fontSize}em sans-serif`;
+        ctx.textBaseline = "middle";
+
+        const text1 = chart.config.options.plugins.centerText.text1;
+        const text2 = chart.config.options.plugins.centerText.text2;
+
+        const textX = Math.round(280+(width - ctx.measureText(text1).width) / 2);
+        const textY = height / 2;
+
+        ctx.fillText(text1, textX, textY - 10);
+        ctx.fillText(text2, textX, textY + 15);
+
+        ctx.save();
+    }
+};
+
+
+function updatePieChart(year) {
+    const pieCanvas = document.getElementById("energyPieChart");
+    const renewableEl = document.getElementById("renewablePercent");
+    const nonRenewableEl = document.getElementById("nonRenewablePercent");
+
+    if (!year) {
+        pieCanvas.style.display = "none";
+        renewableEl.textContent = '';
+        nonRenewableEl.textContent = '';
+        return;
+    } else {
+        pieCanvas.style.display = "block";
+    }
+
+    const yearData = allData.filter(d =>
+        d.date.getFullYear() === parseInt(year) &&
+        !isNaN(d.value)
+    );
+    if (yearData.length === 0) return;
+
+    // Sum production per source
+    const totals = {};
+    yearData.forEach(d => {
+        if (!totals[d.source]) totals[d.source] = 0;
+        totals[d.source] += d.value;
+    });
+
+    const sources = Object.keys(totals);
+    const values = Object.values(totals);
+    const grandTotal = values.reduce((a, b) => a + b, 0);
+
+    // Calculate renewable / non-renewable totals
+    const renewableSources = ["Flusskraft", "Speicherkraft", "Wind", "Photovoltaik"];
+    const nonRenewableSources = ["Kernkraft", "Thermische"];
+
+    const renewableTotal = sources.reduce((sum, s, i) =>
+        renewableSources.includes(s) ? sum + values[i] : sum, 0
+    );
+    const nonRenewableTotal = sources.reduce((sum, s, i) =>
+        nonRenewableSources.includes(s) ? sum + values[i] : sum, 0
+    );
+
+    const renewablePercent = ((renewableTotal / grandTotal) * 100).toFixed(1);
+    const nonRenewablePercent = ((nonRenewableTotal / grandTotal) * 100).toFixed(1);
+
+    // Update text outside the pie chart
+    renewableEl.textContent = `${renewablePercent}% Renewable`;
+    nonRenewableEl.textContent = `${nonRenewablePercent}% Non-Renewable`;
+
+    // Pie chart percentages for labels
+    const percentages = values.map(v => ((v / grandTotal) * 100).toFixed(1));
+
+    const ctx = pieCanvas.getContext("2d");
+    if (pieChart) pieChart.destroy();
+
+    pieChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: sources.map((s, i) => `${s} (${percentages[i]}%)`),
+            datasets: [{
+                data: values,
+                backgroundColor: sources.map((_, i) => getColor(i))
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: "65%",
+            plugins: {
+                legend: { position: "right" }
+            }
+        }
+    });
 }

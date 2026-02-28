@@ -83,3 +83,35 @@ nav ul li a:hover {
     transform: translateX(-50%);
 }
 
+#pieContainer {
+    display: flex;
+    justify-content: center;  /* center the whole block horizontally */
+    align-items: center;      /* vertical alignment */
+    gap: 40px;                /* space between text and pie */
+    margin: 0 auto;           /* center container itself */
+    max-width: 700px;         /* optional max width */
+}
+
+#pieText {
+    flex: 0 0 auto;           /* don't stretch */
+    text-align: left;
+    margin-right: 20px;       /* optional extra spacing from pie */
+    transform: translateX(20px); /* shift slightly right */
+    font-size: 1.2em;         /* increase text size */
+    line-height: 1.5em;       /* spacing between the two lines */
+}
+
+#energyPieChart {
+    flex: 0 0 auto;
+    max-width: 300px;         /* pie size */
+    height: auto;
+    transform: translateX(-20px); /* shift pie slightly left */
+}
+
+#renewablePercent {
+    color: green;
+}
+
+#nonRenewablePercent {
+    color: red;
+}
